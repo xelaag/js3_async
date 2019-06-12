@@ -1,7 +1,7 @@
-const fs = require("fs");
-const util = require("util");
-const path = require("path");
-const yargs = require("yargs");
+const fs = require('fs');
+const util = require('util');
+const path = require('path');
+const yargs = require('yargs');
 const access = util.promisify(fs.access);
 const mkdir = util.promisify(fs.mkdir);
 const copyFile = util.promisify(fs.copyFile);
@@ -9,23 +9,23 @@ const readdir = util.promisify(fs.readdir);
 const stat = util.promisify(fs.stat);
 
 const argv = yargs
-  .usage("Usage: $0 [options]")
-  .help("help")
-  .alias("help", "h")
-  .version("0.0.1")
-  .alias("version", "v")
-  .example("$0 --entry ./filesDir -D", "--> Sorting of files in folders")
-  .option("entry", {
-    alias: "e",
-    describe: "The path of the source directory",
+  .usage('Usage: $0 [options]')
+  .help('help')
+  .alias('help', 'h')
+  .version('0.0.1')
+  .alias('version', 'v')
+  .example('$0 --entry ./filesDir -D', '--> Sorting of files in folders')
+  .option('entry', {
+    alias: 'e',
+    describe: 'The path of the source directory',
     demandOption: true
   })
-  .option("output", {
-    alias: "o",
-    describe: "The path of the output directory",
-    default: "/output"
+  .option('output', {
+    alias: 'o',
+    describe: 'The path of the output directory',
+    default: '/output'
   })
-  .epilog("Second homework on the node.js course").argv;
+  .epilog('Second homework on the node.js course').argv;
 console.log(argv);
 
 const sortDir2 = path.join(__dirname, argv.entry);
@@ -34,30 +34,30 @@ const mainDir = path.join(__dirname, argv.output);
 access(mainDir)
   .then(() => {
     console.log(
-      mainDir + "- такая директория уже создана. Выберете другое имя."
+      mainDir + '- такая директория уже создана. Выберете другое имя.'
     );
   })
-  .catch(err => {
+  .catch(() => {
     mkdir(mainDir)
       .then(() => {
-        console.log("Create dir: " + mainDir);
+        console.log('Create dir: ' + mainDir);
         readDir(sortDir2);
       })
       .catch(err => {
-        console.log("Ошибка создания Dst директории: " + err);
+        console.log('Ошибка создания Dst директории: ' + err);
         process.exit(0);
       });
   });
 
-function copyFileFunc(elementPathName, sortDir, element) {
+function copyFileFunc (elementPathName, sortDir, element) {
   access(elementPathName)
     .then(() => {
-      console.log("Такая директория уже создана - " + elementPathName);
+      console.log('Такая директория уже создана - ' + elementPathName);
       // если создана, то просто копируем в нее файл
       copyFile(path.join(sortDir, element), path.join(elementPathName, element))
         .then(() => {
           console.log(
-            "File: " + element + " copied to " + element[0].toUpperCase()
+            'File: ' + element + ' copied to ' + element[0].toUpperCase()
           );
         })
         .catch(err => {
@@ -65,11 +65,11 @@ function copyFileFunc(elementPathName, sortDir, element) {
         });
     })
     // иначе создаем директорию, а затем копируем в нее файл
-    .catch(err => {
-      console.log("Такой директории еще нет - " + elementPathName);
+    .catch(() => {
+      console.log('Такой директории еще нет - ' + elementPathName);
       mkdir(elementPathName)
         .then(() => {
-          console.log("Create dir: " + elementPathName + " for: " + element);
+          console.log('Create dir: ' + elementPathName + ' for: ' + element);
           // если создана, то просто копируем в нее файл
           copyFile(
             path.join(sortDir, element),
@@ -77,7 +77,7 @@ function copyFileFunc(elementPathName, sortDir, element) {
           )
             .then(() => {
               console.log(
-                "File: " + element + " copied to " + element[0].toUpperCase()
+                'File: ' + element + ' copied to ' + element[0].toUpperCase()
               );
             })
             .catch(err => {
@@ -85,14 +85,14 @@ function copyFileFunc(elementPathName, sortDir, element) {
             });
         })
         .catch(() => {
-          console.log("Ошибка создания директории для: " + element);
-          //пробуем еще раз создать директорию
+          console.log('Ошибка создания директории для: ' + element);
+          // пробуем еще раз создать директорию
           copyFileFunc(elementPathName, sortDir, element);
         });
     });
 }
 
-function readDir(sortDir) {
+function readDir (sortDir) {
   // пробегаем по содержимому директории
   readdir(sortDir)
     .then(files => {
@@ -100,10 +100,10 @@ function readDir(sortDir) {
         // получаем инфо по каждому element
         stat(path.join(sortDir, element))
           .then(stats => {
-            console.log("Элемент - " + element);
+            console.log('Элемент - ' + element);
             if (stats.isFile()) {
-              console.log("Это файл");
-              console.log("****************************");
+              console.log('Это файл');
+              console.log('****************************');
               // путь к директории для файла
               let elementPathName = path.join(
                 mainDir,
@@ -113,17 +113,16 @@ function readDir(sortDir) {
               copyFileFunc(elementPathName, sortDir, element);
             }
             if (stats.isDirectory()) {
-              console.log("Это директория");
-              console.log("****************************");
+              console.log('Это директория');
+              console.log('****************************');
               // углубляемся
               readDir(path.join(sortDir, element));
             }
           })
           .catch(err => {
             console.log(err);
-            return; // exit here since stats will be undefined
           });
       });
     })
-    .catch(err => "Fail to read catalog");
+    .catch(err => 'Fail to read catalog by error:' + err);
 }
