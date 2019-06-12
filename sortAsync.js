@@ -44,7 +44,7 @@ access(mainDir)
         readDir(sortDir2);
       })
       .catch(err => {
-        console.log("fgf" + err);
+        console.log("Ошибка создания Dst директории: " + err);
         process.exit(0);
       });
   });
@@ -64,27 +64,30 @@ function copyFileFunc(elementPathName, sortDir, element) {
           throw err;
         });
     })
+    // иначе создаем директорию, а затем копируем в нее файл
     .catch(err => {
       console.log("Такой директории еще нет - " + elementPathName);
-      // иначе создаем директорию, а затем копируем в нее файл
       mkdir(elementPathName)
         .then(() => {
-          console.log("Create dir: " + elementPathName);
+          console.log("Create dir: " + elementPathName + " for: " + element);
           // если создана, то просто копируем в нее файл
-          fs.copyFile(
+          copyFile(
             path.join(sortDir, element),
-            path.join(elementPathName, element),
-            err => {
-              if (err) throw err;
+            path.join(elementPathName, element)
+          )
+            .then(() => {
               console.log(
                 "File: " + element + " copied to " + element[0].toUpperCase()
               );
-            }
-          );
+            })
+            .catch(err => {
+              throw err;
+            });
         })
-        .catch(err => {
-          console.log("Ошибка создания директории " + err);
-          copyFile(elementPathName, sortDir, element);
+        .catch(() => {
+          console.log("Ошибка создания директории для: " + element);
+          //пробуем еще раз создать директорию
+          copyFileFunc(elementPathName, sortDir, element);
         });
     });
 }
@@ -99,7 +102,7 @@ function readDir(sortDir) {
           .then(stats => {
             console.log("Элемент - " + element);
             if (stats.isFile()) {
-              console.log('"Это файл" - ' + element);
+              console.log("Это файл");
               console.log("****************************");
               // путь к директории для файла
               let elementPathName = path.join(
@@ -107,10 +110,10 @@ function readDir(sortDir) {
                 element[0].toUpperCase()
               );
               // копируем файл
-              copyFile(elementPathName, sortDir, element);
+              copyFileFunc(elementPathName, sortDir, element);
             }
             if (stats.isDirectory()) {
-              console.log('"Это директория" - ' + element);
+              console.log("Это директория");
               console.log("****************************");
               // углубляемся
               readDir(path.join(sortDir, element));
